@@ -60,18 +60,32 @@ class Pushover:
     PUSHOVER_ENDPOINT = "/1/messages.json"
     PUSHOVER_CONTENT_TYPE = { "Content-type": "application/x-www-form-urlencoded"}
 
-    def __init__(self, token=None):
+    def __init__(self, token: str | None = None, user_token: str | None = None, user_device: str | None = None):
         """
         Creates a Pushover object.
+        
+        Args:
+            token: Optional[str] - The application token. If not provided, 
+                                 will look for PUSHOVER_APP_TOKEN in environment variables
+            user_token: Optional[str] - The user token. If not provided,
+                                      will look for PUSHOVER_USER_TOKEN in environment variables
+            user_device: Optional[str] - The specific device to send to (optional)
+        
+        Raises:
+            PushoverError: If no token is supplied and PUSHOVER_APP_TOKEN is not set
         """
-
         if token is None:
-            raise PushoverError("No token supplied.")
-        else:
-            self.token = token
-            self.user_token = None
-            self.user_device = None
-            self.messages = []
+            token = os.getenv('PUSHOVER_APP_TOKEN')
+            if token is None:
+                raise PushoverError("No token supplied and PUSHOVER_APP_TOKEN environment variable not set.")
+        
+        self.token = token
+        self.user_token = None
+        self.user_device = None
+        self.messages = []
+        
+        # Automatically set up user credentials
+        self.user(user_token, user_device)
 
     def msg(self, message):
         """
@@ -83,12 +97,13 @@ class Pushover:
         self.messages.append(message)
         return message
 
-    def send(self, message):
+    def send(self, message: str | PushoverMessage, title: str | None = None) -> bool:
         """
         Sends a specified message. Can accept either a PushoverMessage object or a string.
         
         Args:
             message: Union[PushoverMessage, str] - The message to send
+            title: Optional[str] - The title of the message (only used when message is a string)
             
         Returns:
             bool: True if message was sent successfully
@@ -100,6 +115,8 @@ class Pushover:
             return self._send(message)
         elif isinstance(message, str):
             temp_message = PushoverMessage(message)
+            if title:
+                temp_message.set('title', title)
             if self.user_token:
                 temp_message.user(self.user_token, self.user_device)
             return self._send(temp_message)
@@ -116,11 +133,24 @@ class Pushover:
             response.append(self._send(message))
         return response
 
-    def user(self, user_token, user_device=None):
+    def user(self, user_token: str | None = None, user_device: str | None = None):
         """
         Sets a single user to be the recipient of all messages created with this Pushover object.
+        If no user_token is provided, will look for PUSHOVER_USER_TOKEN in environment variables.
+        
+        Args:
+            user_token: Optional[str] - The user token. If not provided, 
+                                      will look for PUSHOVER_USER_TOKEN in environment variables
+            user_device: Optional[str] - The specific device to send to (optional)
+            
+        Raises:
+            PushoverError: If no user token is supplied and PUSHOVER_USER_TOKEN is not set
         """
-
+        if user_token is None:
+            user_token = os.getenv('PUSHOVER_USER_TOKEN')
+            if user_token is None:
+                raise PushoverError("No user token supplied and PUSHOVER_USER_TOKEN environment variable not set.")
+        
         self.user_token = user_token
         self.user_device = user_device
 
