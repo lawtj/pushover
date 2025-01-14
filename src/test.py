@@ -1,18 +1,29 @@
 from pushover import Pushover
-import os
 
-# Method 1: Using environment variables (most simple)
-po = Pushover()  # Will automatically use environment variables for both app and user tokens
+# Using environment variables for tokens
+po = Pushover()
 
-# Method 2: Explicitly providing all tokens at once
-po = Pushover(
-    token="your_app_token",
-    user_token="your_user_token",
-    user_device="optional_device_name"
+# Simple message
+po.send("Server backup completed successfully")
+
+# Message with title
+po.send(
+    "CPU usage has exceeded 90%", 
+    "High CPU Alert"
 )
 
-# Method 3: Mix of explicit and environment variables
-po = Pushover(token="your_app_token")  # Will use environment variable for user token
+# Message with URL to logs
+po.send(
+    "New deployment completed", 
+    "Deployment Status",
+    url="https://github.com/myorg/myrepo/actions",
+    url_title="View deployment logs"
+)
 
-# Send messages
-po.send("Hello, World!", "Optional Title")
+# Using the message object for more control
+msg = po.msg("Critical error in production")
+msg.set('title', 'Production Alert')
+msg.set('url', 'https://dashboard.myapp.com/errors/123')
+msg.set('url_title', 'View error details')
+msg.set('priority', 1)  # Set other parameters as needed
+po.send(msg)

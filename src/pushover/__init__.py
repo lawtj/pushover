@@ -97,13 +97,21 @@ class Pushover:
         self.messages.append(message)
         return message
 
-    def send(self, message: str | PushoverMessage, title: str | None = None) -> bool:
+    def send(
+        self, 
+        message: str | PushoverMessage, 
+        title: str | None = None,
+        url: str | None = None,
+        url_title: str | None = None
+    ) -> bool:
         """
         Sends a specified message. Can accept either a PushoverMessage object or a string.
         
         Args:
             message: Union[PushoverMessage, str] - The message to send
             title: Optional[str] - The title of the message (only used when message is a string)
+            url: Optional[str] - A supplementary URL to show with the message
+            url_title: Optional[str] - A title for the URL (only used when url is provided)
             
         Returns:
             bool: True if message was sent successfully
@@ -117,11 +125,13 @@ class Pushover:
             temp_message = PushoverMessage(message)
             if title:
                 temp_message.set('title', title)
+            if url:
+                temp_message.set('url', url)
+                if url_title:
+                    temp_message.set('url_title', url_title)
             if self.user_token:
                 temp_message.user(self.user_token, self.user_device)
             return self._send(temp_message)
-        else:
-            raise PushoverError("Message must be either a string or PushoverMessage object!")
 
     def sendall(self):
         """
