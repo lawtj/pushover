@@ -1,7 +1,7 @@
 [project]
 name = "pushover"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.1"
+description = "A Python library for sending messages to Pushover."
 readme = "README.md"
 authors = [
     { name = "lawtj", email = "41483192+lawtj@users.noreply.github.com" }
